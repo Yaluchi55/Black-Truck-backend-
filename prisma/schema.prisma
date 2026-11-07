@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+enum UserRole { RIDER CHAUFFEUR ADMIN }
+enum VehicleTier { STANDARD EXECUTIVE SUV BLACK_TRUCK }
+enum BookingType { HOURLY POINT_TO_POINT }
+enum BookingStatus { PENDING ACCEPTED ACTIVE COMPLETED CANCELLED }
+enum PaymentMethod { MTN_MOMO AIRTEL_MONEY CARD CASH }
+enum TransactionStatus { PENDING SUCCESS FAILED REFUNDED }
+enum PayoutStatus { QUEUED HELD PROCESSING PAID FAILED }
+model User {
+  id                String   @id @default(uuid()) @db.Uuid
+  phone             String   @unique @db.VarChar(16)
+  role              UserRole
+  fullName          String   @map("full_name") @db.VarChar(160)
+  profilePictureUrl String?  @map("profile_picture_url") @db.Text
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  drivers           Driver[]
+  riderBookings     Booking[] @relation("RiderBookings")
+  deviceEvents      DeviceEvent[]
+  @@map("users")
+}
+model Driver {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @unique @map("user_id") @db.Uuid
+  vehicleTier     VehicleTier @map("vehicle_tier")
+  licensePlate    String      @unique @map("license_plate") @db.VarChar(24)
+  rtsaPsvCleared  Boolean     @default(false) @map("rtsa_psv_cleared")
+  isOnline        Boolean     @default(false) @map("is_online")
+  currentLat      Float?      @map("current_lat")
+  currentLng      Float?      @map("current_lng")
+  locationUpdatedAt DateTime? @map("location_updated_at")
+  user            User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bookings        Booking[]   @relation("DriverBookings")
+  payouts         Payout[]
+  @@index([isOnline, vehicleTier])
+  @@map("drivers")
+}
+model Booking {
+  id            String        @id @default(uuid()) @db.Uuid
+  riderId       String        @map("rider_id") @db.Uuid
+  driverId      String?       @map("driver_id") @db.Uuid
+  bookingType   BookingType   @map("booking_type")
+  totalHours    Decimal?      @map("total_hours") @db.Decimal(6,2)
+  basePriceZmw  Decimal       @map("base_price_zmw") @db.Decimal(14,2)
+  basePriceUsd  Decimal?      @map("base_price_usd") @db.Decimal(14,2)
+  status        BookingStatus @default(PENDING)
+  paymentMethod PaymentMethod @map("payment_method")
+  expenseMemo   String?       @map("expense_memo") @db.VarChar(500)
+  pickupLat     Float?        @map("pickup_lat")
+  pickupLng     Float?        @map("pickup_lng")
+  dropoffLat    Float?        @map("dropoff_lat")
+  dropoffLng    Float?        @map("dropoff_lng")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  rider         User          @relation("RiderBookings", fields: [riderId], references: [id], onDelete: Restrict)
+  driver        Driver?       @relation("DriverBookings", fields: [driverId], references: [id], onDelete: Restrict)
+  transactions  Transaction[]
+  @@index([status, createdAt])
+  @@index([riderId, createdAt])
+  @@map("bookings")
+}
+model Transaction {
+  id                  String            @id @default(uuid()) @db.Uuid
+  bookingId           String            @map("booking_id") @db.Uuid
+  internalReference   String            @unique @map("internal_reference") @db.VarChar(80)
+  telcoTransactionId  String?           @unique @map("telco_transaction_id") @db.VarChar(120)
+  paymentGateway      String            @map("payment_gateway") @db.VarChar(40)
+  amountZmw           Decimal            @map("amount_zmw") @db.Decimal(14,2)
+  platformFeeZmw      Decimal            @default(0) @map("platform_fee_zmw") @db.Decimal(14,2)
+  operatorAmountZmw   Decimal            @default(0) @map("operator_amount_zmw") @db.Decimal(14,2)
+  status              TransactionStatus @default(PENDING)
+  paidAt              DateTime?          @map("paid_at")
+  webhookEventId      String?            @unique @map("webhook_event_id") @db.VarChar(160)
+  createdAt           DateTime           @default(now()) @map("created_at")
+  booking             Booking            @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  payout              Payout?
+  @@index([status, createdAt])
+  @@map("transactions")
+}
+model Payout {
+  id            String      @id @default(uuid()) @db.Uuid
+  transactionId String      @unique @map("transaction_id") @db.Uuid
+  driverId      String      @map("driver_id") @db.Uuid
+  amountZmw     Decimal     @map("amount_zmw") @db.Decimal(14,2)
+  status        PayoutStatus @default(QUEUED)
+  eligibleAt    DateTime    @map("eligible_at")
+  attempts      Int         @default(0)
+  providerRef   String?     @map("provider_ref") @db.VarChar(120)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  driver        Driver       @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  @@index([status, eligibleAt])
+  @@map("payouts")
+}
+model OtpChallenge {
+  id          String   @id @default(uuid()) @db.Uuid
+  phone       String   @db.VarChar(16)
+  role        UserRole
+  codeHash    String   @map("code_hash") @db.VarChar(128)
+  expiresAt   DateTime @map("expires_at")
+  attempts    Int      @default(0)
+  consumedAt  DateTime? @map("consumed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  @@index([phone, role, expiresAt])
+  @@map("otp_challenges")
+}
+model DeviceEvent {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  deviceHash    String   @map("device_hash") @db.VarChar(128)
+  networkHash   String?  @map("network_hash") @db.VarChar(128)
+  eventType     String   @map("event_type") @db.VarChar(50)
+  flagged       Boolean  @default(false)
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([deviceHash, createdAt])
+  @@index([networkHash, createdAt])
+  @@map("device_events")
+}

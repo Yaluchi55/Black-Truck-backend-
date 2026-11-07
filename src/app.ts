@@ -1,0 +1,28 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
+import { env } from './config/env';
+import { logger } from './config/logger';
+import { errorHandler } from './middleware/errors';
+import { authRouter } from './modules/auth/auth.controller';
+import { forexRouter } from './modules/forex/forex.controller';
+import { paymentRouter } from './modules/payment/payment.controller';
+import { bookingsRouter } from './modules/bookings/bookings.controller';
+import { healthRouter } from './modules/health/health.controller';
+export const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', 1); // Set to the exact trusted proxy hop count in your deployment.
+app.use(helmet());
+app.use(cors({ origin: env.CORS_ORIGINS.split(',').map(x => x.trim()), credentials: false }));
+app.use(pinoHttp({ logger }));
+app.use(express.json({ limit: '64kb', verify: (req, _res, buf) => { (req as any).rawBody = buf.toString('utf8'); } }));
+app.use('/api', rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/auth', rateLimit({ windowMs: 15*60_000, limit: 10, standardHeaders: true, legacyHeaders: false }), authRouter);
+app.use('/api/forex', forexRouter);
+app.use('/api/payments', paymentRouter);
+app.use('/api/bookings', bookingsRouter);
+app.use('/health', healthRouter);
+app.use((_req,res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }));
+app.use(errorHandler);
