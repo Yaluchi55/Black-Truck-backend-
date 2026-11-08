@@ -5,13 +5,54 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum UserRole { RIDER CHAUFFEUR ADMIN }
-enum VehicleTier { STANDARD EXECUTIVE SUV BLACK_TRUCK }
-enum BookingType { HOURLY POINT_TO_POINT }
-enum BookingStatus { PENDING ACCEPTED ACTIVE COMPLETED CANCELLED }
-enum PaymentMethod { MTN_MOMO AIRTEL_MONEY CARD CASH }
-enum TransactionStatus { PENDING SUCCESS FAILED REFUNDED }
-enum PayoutStatus { QUEUED HELD PROCESSING PAID FAILED }
+enum UserRole {
+    RIDER
+      CHAUFFEUR
+        ADMIN
+}
+
+enum VehicleTier {
+    STANDARD
+      EXECUTIVE
+        SUV
+          BLACK_TRUCK
+}
+
+enum BookingType {
+    HOURLY
+      POINT_TO_POINT
+}
+
+enum BookingStatus {
+    PENDING
+      ACCEPTED
+        ACTIVE
+          COMPLETED
+            CANCELLED
+}
+
+enum PaymentMethod {
+    MTN_MOMO
+      AIRTEL_MONEY
+        CARD
+          CASH
+}
+
+enum TransactionStatus {
+    PENDING
+      SUCCESS
+        FAILED
+          REFUNDED
+}
+
+enum PayoutStatus {
+    QUEUED
+      HELD
+        PROCESSING
+          PAID
+            FAILED
+
+}
 model User {
   id                String   @id @default(uuid()) @db.Uuid
   phone             String   @unique @db.VarChar(16)
