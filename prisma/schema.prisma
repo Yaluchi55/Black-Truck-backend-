@@ -7,51 +7,50 @@ datasource db {
 }
 enum UserRole {
     RIDER
-      CHAUFFEUR
-        ADMIN
+    CHAUFFEUR
+    ADMIN
 }
 
 enum VehicleTier {
     STANDARD
-      EXECUTIVE
-        SUV
-          BLACK_TRUCK
+    EXECUTIVE
+    SUV
+    BLACK_TRUCK
 }
 
 enum BookingType {
     HOURLY
-      POINT_TO_POINT
+    POINT_TO_POINT
 }
 
 enum BookingStatus {
     PENDING
-      ACCEPTED
-        ACTIVE
-          COMPLETED
-            CANCELLED
+    ACCEPTED
+    ACTIVE
+    COMPLETED
+    CANCELLED
 }
 
 enum PaymentMethod {
     MTN_MOMO
-      AIRTEL_MONEY
-        CARD
-          CASH
+    AIRTEL_MONEY
+    CARD
+    CASH
 }
 
 enum TransactionStatus {
     PENDING
-      SUCCESS
-        FAILED
-          REFUNDED
+    SUCCESS
+    FAILED
+    REFUNDED
 }
 
 enum PayoutStatus {
     QUEUED
-      HELD
-        PROCESSING
-          PAID
-            FAILED
-
+    HELD
+    PROCESSING
+    PAID
+    FAILED
 }
 model User {
   id                String   @id @default(uuid()) @db.Uuid
