@@ -10,19 +10,16 @@ enum UserRole {
     CHAUFFEUR
     ADMIN
 }
-
 enum VehicleTier {
     STANDARD
     EXECUTIVE
     SUV
     BLACK_TRUCK
 }
-
 enum BookingType {
     HOURLY
     POINT_TO_POINT
 }
-
 enum BookingStatus {
     PENDING
     ACCEPTED
@@ -30,21 +27,18 @@ enum BookingStatus {
     COMPLETED
     CANCELLED
 }
-
 enum PaymentMethod {
     MTN_MOMO
     AIRTEL_MONEY
     CARD
     CASH
 }
-
 enum TransactionStatus {
     PENDING
     SUCCESS
     FAILED
     REFUNDED
 }
-
 enum PayoutStatus {
     QUEUED
     HELD
