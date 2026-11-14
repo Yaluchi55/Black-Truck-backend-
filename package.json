@@ -30,6 +30,13 @@
     "@prisma/client": "6.19.3",
     "prisma": "^6.19.3",
     "socket.io": "^4.8.1",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.0",
+    "@types/express": "^5.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.7"                                   
   }
 }
