@@ -26,7 +26,11 @@ bookingsRouter.post('/', requireAuth, restrictTo(UserRole.RIDER), asyncHandler(a
   res.status(201).json({ booking });
 }));
 bookingsRouter.get('/:id', requireAuth, asyncHandler(async (req,res) => {
-  const booking = await prisma.booking.findFirst({ where: { id: req.params.id, OR: [{ riderId: req.auth!.userId }, { driver: { userId: req.auth!.userId } }] }, include: { transactions: true, driver: { include: { user: { select: { fullName: true, phone: true } } } } } });
-  if (!booking) throw new HttpError(404, 'Booking not found', 'BOOKING_NOT_FOUND');
-  res.json({ booking });
+  const booking = await prisma.booking.findFirst({
+      where: {
+          id: String(req.params.id),
+              OR: [{ riderId: req.auth!.userId }, { driver: { userId: req.auth!.userId } }],
+                },
+                  include: { transactions: true, driver: { include: { user: { select: { fullName: true, phone: true } } } } },
+                  });
 }));
